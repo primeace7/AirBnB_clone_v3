@@ -1,8 +1,8 @@
 #!/usr/bin/python3
-"""
-A flask app to serve REST api service
+"""A flask app to serve REST api service
 this is the main application that calls a registered blueprint
 """
+
 from .views import app_views
 from flask import Flask, make_response, jsonify
 from models import storage
@@ -10,6 +10,7 @@ import os
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
+app.url_map.strict_slashes = False
 
 
 @app.teardown_appcontext

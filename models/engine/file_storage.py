@@ -85,5 +85,5 @@ class FileStorage:
         """
         all_models = self.all(cls)
         if all_models is None:
-            return None
+            return 0
         return len(all_models)
