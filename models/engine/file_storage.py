@@ -75,6 +75,8 @@ class FileStorage:
         all_models = self.all(cls)
         if all_models is None:
             return None
+        if all_models == {}:
+            return {}
         for key, val in all_models.items():
             if val.id == id:
                 return str(val)
