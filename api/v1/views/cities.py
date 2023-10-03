@@ -19,7 +19,7 @@ def cities_list(state_id):
         if state.id == state_id:
             for city in state.cities:
                 found_list.append(city.to_dict())
-            return found_list
+            return make_response(found_list, 200)
     if len(found_list) == 0:
         abort(404)
 
@@ -31,7 +31,10 @@ def get_city(city_id):
     all_cities = storage.all('City')
     for city in all_cities.values():
         if city.id == city_id:
-            return jsonify(city.to_dict())
+            answer = city.to_dict().copy()
+            if answer.get('_sa_instance_state_'):
+                del answer['_sa_instance_state']
+            return make_response(jsonify(answer), 200)
     abort(404)
 
 
@@ -57,13 +60,18 @@ def create_city(state_id):
     request_body = request.get_json()
     if 'name' not in request_body.keys():
         return make_response(jsonify({'error': 'Missing name'}), 400)
+
     for state in storage.all('State').values():
         if state.id == state_id:
             new_city = City(**request_body)
             new_city.state_id = state.id
             storage.new(new_city)
             storage.save()
-            return make_response(jsonify(new_city.to_dict()), 201)
+
+            answer = new_city.to_dict()
+            if answer.get('_sa_instance_state'):
+                del answer['_sa_instance_state']
+            return make_response(jsonify(answer), 201)
     abort(404)
 
 
@@ -74,12 +82,13 @@ def update_city(city_id):
     if not request.json:
         return make_response(jsonify({'error': 'Not a JSON'}), 400)
     request_body = request.get_json()
-    all_cities = storage.all('City')
-    for city in all_cities.values():
-        if city.id == city_id:
-            for key, val in request_body.items():
-                if key not in ['id', 'state_id', 'created_at', 'updated_at']:
-                    city.key = val
-            return make_response(jsonify(city.to_dict()), 200)
-
-    abort(404)
+    city = storage.get('City', city_id)
+    if not city:
+        abort(404)
+    for key, val in request_body.items():
+        if key not in ['id', 'state_id', 'created_at', 'updated_at']:
+            setattr(city, key, val)
+    city.save()
+    storage.reload()
+    answer = storage.get(city.__class__, city.id)
+    return make_response(jsonify(answer.to_dict()), 200)

@@ -83,7 +83,7 @@ class DBStorage:
             return None
         for key, val in all_models.items():
             if val.id == id:
-                return str(val)
+                return val
         return None
 
     def count(self, cls=None):
