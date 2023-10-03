@@ -19,7 +19,7 @@ def cities_list(state_id):
     found_list = []
     for city in state.cities:
         found_list.append(city.to_dict())
-        return make_response(jsonify(found_list), 200)
+        return jsonify(found_list)
     if len(found_list) == 0:
         abort(404)
 
@@ -34,7 +34,7 @@ def get_city(city_id):
     answer = city.to_dict().copy()
     if answer.get('_sa_instance_state_'):
         del answer['_sa_instance_state']
-    return make_response(jsonify(answer), 200)
+    return jsonify(answer)
 
 
 @app_views.route('cities/<city_id>', methods=['DELETE'])
