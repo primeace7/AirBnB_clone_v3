@@ -13,13 +13,13 @@ from flask import abort, make_response, jsonify, request
 def cities_list(state_id):
     """get a list of cities of a particular state id
     """
-    all_states = storage.all('State')
+    state = storage.get('State', state_id)
+    if not state:
+        abort(404)
     found_list = []
-    for state in all_states.values():
-        if state.id == state_id:
-            for city in state.cities:
-                found_list.append(city.to_dict())
-            return make_response(found_list, 200)
+    for city in state.cities:
+        found_list.append(city.to_dict())
+        return make_response(jsonify(found_list), 200)
     if len(found_list) == 0:
         abort(404)
 
@@ -28,27 +28,25 @@ def cities_list(state_id):
 def get_city(city_id):
     """get a city instance with id of city_id
     """
-    all_cities = storage.all('City')
-    for city in all_cities.values():
-        if city.id == city_id:
-            answer = city.to_dict().copy()
-            if answer.get('_sa_instance_state_'):
-                del answer['_sa_instance_state']
-            return make_response(jsonify(answer), 200)
-    abort(404)
+    city = storage.get('City', city_id)
+    if not city:
+        abort(404)
+    answer = city.to_dict().copy()
+    if answer.get('_sa_instance_state_'):
+        del answer['_sa_instance_state']
+    return make_response(jsonify(answer), 200)
 
 
 @app_views.route('cities/<city_id>', methods=['DELETE'])
 def delete_city(city_id):
     """delete a city with id of city_id from storage
     """
-    all_cities = storage.all('City')
-    for city in all_cities.values():
-        if city.id == city_id:
-            storage.delete(city)
-            storage.save()
-            return make_response(jsonify({}), 200)
-    abort(404)
+    city = storage.get('City', city_id)
+    if not city:
+        abort(404)
+    storage.delete(city)
+    storage.save()
+    return make_response(jsonify({}), 200)
 
 
 @app_views.route('/states/<state_id>/cities', methods=['POST'])
